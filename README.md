@@ -14,4 +14,4 @@ La prueba gratis dura cinco días desde el primer inicio de la versión que impl
 
 La versión y el estado de cobros se detallan en [Releases](https://github.com/goztpy-a11y/GEXE-actualizaciones./releases). Al publicar GEXE 1.1.4, ambas páginas de pago siguen en modo de prueba; todavía no hay cobros reales habilitados.
 
-El paquete público incluye únicamente el identificador público Google. La conexión de cuentas nuevas sin secreto incluido requiere comprobación adicional. Este repositorio no contiene libros de usuarios, contraseñas, secretos de cliente Google ni tokens de sesión de sus cuentas.
+El paquete público 1.1.4 incluye únicamente el identificador público Google. La conexión de cuentas nuevas sin secreto incluido requiere comprobación adicional. Este paquete de actualización no contiene libros de usuarios, contraseñas, el secreto de cliente Google ni tokens de sesión.
