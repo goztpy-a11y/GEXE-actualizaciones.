@@ -13,15 +13,18 @@ jobs:
   windows:
     runs-on: windows-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ runner.temp }}
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
       - name: Verify recovered source archive
         shell: pwsh
         run: |
-          $archive = 'recuperacion/windows-1.1.5/GEXE-Codigo-Recuperado-1.1.5.zip'
+          $archive = Join-Path $env:RUNNER_TEMP 'GEXE-Codigo-Recuperado-1.1.5.zip'
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/$env:GITHUB_REPOSITORY/$env:GITHUB_SHA/recuperacion/windows-1.1.5/GEXE-Codigo-Recuperado-1.1.5.zip" -OutFile $archive
           if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '67b702aa2496893ccc296c04f70e578736fa3b103d021741a74de27d0639f9aa') { throw 'Source checksum mismatch' }
           Expand-Archive $archive -DestinationPath build
       - name: Run contract checks and compile app and installer
