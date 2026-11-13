@@ -1,0 +1,32 @@
+name: Inspect GEXE Android update channel
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/inspect-gexe-android.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recover Android announcement from draft asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -H 'Accept: application/octet-stream' 'repos/goztpy-a11y/GEXE-actualizaciones./releases/assets/743213800' > "$RUNNER_TEMP/android-update.json"
+          python3 - <<'PY'
+          import os,json,urllib.parse
+          from pathlib import Path
+          d=json.loads((Path(os.environ['RUNNER_TEMP'])/'android-update.json').read_text(encoding='utf-8-sig'))
+          print('FIELDS:', ', '.join(d.keys()))
+          for k,v in d.items():
+              if any(s in k.lower() for s in ['secret','token','password','private']):
+                  continue
+              if isinstance(v,str) and v.startswith('https://'):
+                  u=urllib.parse.urlsplit(v)
+                  v=urllib.parse.urlunsplit((u.scheme,u.netloc,u.path,'',''))
+              if not isinstance(v,(dict,list)):
+                  print(k+': '+str(v))
+          PY
