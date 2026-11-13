@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths: [.github/workflows/inspect-gexe-android.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
   inspect:
     runs-on: ubuntu-latest
