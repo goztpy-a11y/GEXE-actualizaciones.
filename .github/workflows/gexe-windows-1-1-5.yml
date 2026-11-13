@@ -69,8 +69,8 @@ jobs:
               Environment.SetEnvironmentVariable("GEXE_SKIP_LICENSE_CHECKS","1");
               Environment.SetEnvironmentVariable("GOZT_EXCEL_DATA_DIR",Path.Combine(Path.GetTempPath(),"GEXE-UI-"+Guid.NewGuid()));
               try {
-                Application.ResourceAssembly=typeof(GOZT.Excel.App).Assembly;
                 var app = new GOZT.Excel.App(); app.InitializeComponent();
+                app.StartupUri=new Uri("pack://application:,,,/GEXE;component/mainwindow.xaml",UriKind.Absolute);
                 app.ShutdownMode=ShutdownMode.OnExplicitShutdown;
                 GOZT.Excel.MainWindow main=null;
                 int stage=0; bool passed=false; var start=DateTime.UtcNow;
