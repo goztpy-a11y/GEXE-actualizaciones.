@@ -51,6 +51,7 @@ jobs:
           </Project>
           '@ | Set-Content ui-check/UiCheck.csproj
           @'
+          using System.IO;
           using System.Reflection;
           using System.Windows;
           using System.Windows.Controls;
