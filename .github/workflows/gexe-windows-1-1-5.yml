@@ -1,0 +1,135 @@
+name: Verify and publish GEXE Windows 1.1.5
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/gexe-windows-1-1-5.yml]
+permissions:
+  contents: write
+concurrency:
+  group: gexe-windows-release-1.1.5
+  cancel-in-progress: false
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify recovered source archive
+        shell: pwsh
+        run: |
+          $archive = 'recuperacion/windows-1.1.5/GEXE-Codigo-Recuperado-1.1.5.zip'
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '67b702aa2496893ccc296c04f70e578736fa3b103d021741a74de27d0639f9aa') { throw 'Source checksum mismatch' }
+          Expand-Archive $archive -DestinationPath build
+      - name: Run contract checks and compile app and installer
+        shell: pwsh
+        run: ./build/windows/build.ps1
+      - name: Verify installer extraction
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'gexe-install-check'
+          $proc = Start-Process './build/windows/artifacts/setup/GEXE-Setup.exe' -ArgumentList '--extract', $target -Wait -PassThru
+          if ($proc.ExitCode -ne 0) { throw 'Installer extraction failed' }
+          Get-ChildItem './build/windows/artifacts/app' -File | Where-Object Extension -ne '.pdb' | ForEach-Object {
+            $actual = Join-Path $target $_.Name
+            if (!(Test-Path $actual) -or (Get-FileHash $_.FullName).Hash -ne (Get-FileHash $actual).Hash) { throw "Installer payload mismatch: $($_.Name)" }
+          }
+      - name: Build UI verification harness
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory ui-check | Out-Null
+          @'
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+            <ItemGroup><Reference Include="GEXE"><HintPath>../build/windows/artifacts/app/GEXE.dll</HintPath></Reference></ItemGroup>
+          </Project>
+          '@ | Set-Content ui-check/UiCheck.csproj
+          @'
+          using System.Reflection;
+          using System.Windows;
+          using System.Windows.Controls;
+          using System.Windows.Media;
+          using System.Windows.Threading;
+          class Program {
+            static IEnumerable<string> Text(DependencyObject root) {
+              if (root is TextBlock t) yield return t.Text;
+              if (root is ContentControl c && c.Content is string s) yield return s;
+              for (int i=0; i<VisualTreeHelper.GetChildrenCount(root); i++)
+                foreach(var value in Text(VisualTreeHelper.GetChild(root,i))) yield return value;
+            }
+            [STAThread] static int Main() {
+              Environment.SetEnvironmentVariable("GEXE_SKIP_UPDATE_CHECK","1");
+              Environment.SetEnvironmentVariable("GEXE_SKIP_LICENSE_CHECKS","1");
+              Environment.SetEnvironmentVariable("GOZT_EXCEL_DATA_DIR",Path.Combine(Path.GetTempPath(),"GEXE-UI-"+Guid.NewGuid()));
+              try {
+                var app = new GOZT.Excel.App(); app.InitializeComponent();
+                app.StartupUri=null; app.ShutdownMode=ShutdownMode.OnExplicitShutdown;
+                var main = new GOZT.Excel.MainWindow(); app.MainWindow=main;
+                int stage=0; bool passed=false; var start=DateTime.UtcNow;
+                var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(500) };
+                timer.Tick += (_,_) => {
+                  try {
+                    if ((DateTime.UtcNow-start).TotalSeconds>30) throw new Exception("UI verification timeout");
+                    var windows=app.Windows.Cast<Window>().ToArray();
+                    if(stage==0) {
+                      var home=windows.FirstOrDefault(w=>w.Title=="GEXE · Inicio");
+                      if(home!=null) { home.Close(); stage=1; }
+                    } else if(stage==1) {
+                      stage=2;
+                      main.Dispatcher.BeginInvoke(new Action(()=>typeof(GOZT.Excel.MainWindow).GetMethod("ShowPlansWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(main,null)));
+                    } else if(stage==2) {
+                      var plans=windows.FirstOrDefault(w=>w.Title=="GEXE · Planes y suscripción");
+                      if(plans!=null && plans.IsVisible) {
+                        var text=Text(plans).ToArray();
+                        if(!text.Contains("USD 28,15") || !text.Contains("USD 201,09")) throw new Exception("New plan prices not rendered");
+                        if(text.Any(s=>s.Contains("68,55")||s.Contains("403,13"))) throw new Exception("Old prices still rendered");
+                        Console.WriteLine("PASS: Windows UI, start screen and plan prices rendered.");
+                        passed=true; timer.Stop(); plans.Close(); main.Close(); app.Shutdown(0);
+                      }
+                    }
+                  } catch(Exception ex) { Console.Error.WriteLine(ex); timer.Stop(); app.Shutdown(1); }
+                };
+                timer.Start(); main.Show(); app.Run(); return passed ? 0 : 1;
+              } catch(Exception ex) { Console.Error.WriteLine(ex); return 1; }
+            }
+          }
+          '@ | Set-Content ui-check/Program.cs
+          dotnet run --project ui-check/UiCheck.csproj -c Release
+          if ($LASTEXITCODE) { throw 'Windows UI verification failed' }
+      - name: Prepare stable update announcement
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory release-output | Out-Null
+          Copy-Item build/windows/artifacts/GEXE-Update-1.1.5.zip release-output/GEXE-Update.zip
+          $zip=Get-Item release-output/GEXE-Update.zip
+          @{
+            product='GEXE'; enabled=$true; version='1.1.5';
+            downloadUrl='https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/v1.1.5/GEXE-Update.zip';
+            notes='Nuevos precios: mensual USD 28,15 y pago único USD 201,09. Cerrá GEXE y ejecutá GEXE-Setup.exe después de extraer todo el ZIP. Conserva tus libros y configuración. Se requiere confirmación para instalar.';
+            sha256=(Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant(); sizeBytes=$zip.Length
+          } | ConvertTo-Json | Set-Content release-output/gexe-update.json -Encoding utf8NoBOM
+          @'
+          ## GEXE Windows 1.1.5
+
+          - Mensual: USD 28,15. Pago único: USD 201,09.
+          - Código recuperado de la versión pública 1.1.4. No incluye cambios posteriores que solo existan en otros dispositivos.
+          - Verificación en Windows: once comprobaciones de precios, fórmulas y actualizaciones; extracción del instalador; inicio de la interfaz y visualización de ambos precios.
+
+          Descargá GEXE-Update.zip, extraé todo, cerrá GEXE y ejecutá GEXE-Setup.exe junto con sus archivos. Requiere .NET Desktop Runtime 10 x64. El instalador no tiene firma digital comercial. Conserva libros y configuración local.
+
+          El titular confirmó el cambio de importes del proveedor de pagos. No se realizó una compra ni se verificó una transacción. Se conserva la integración pública de prueba de 1.1.4; esta actualización no activa por sí sola cobros reales ni cambia identificadores de licencias.
+
+          Android no forma parte de esta publicación. Su canal permanece sin cambios.
+          '@ | Set-Content release-output/NOTES.md -Encoding utf8
+      - name: Publish verified Windows update
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.1.5 --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'Release already exists; refusing to overwrite' }
+          gh release create v1.1.5 release-output/GEXE-Update.zip release-output/gexe-update.json --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title 'GEXE 1.1.5 · Nuevos precios' --notes-file release-output/NOTES.md --latest
+          if ($LASTEXITCODE) { throw 'Release publication failed' }
