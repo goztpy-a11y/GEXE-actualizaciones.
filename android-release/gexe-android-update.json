@@ -3,12 +3,12 @@
   "platform": "android",
   "applicationId": "com.gozt.gexe",
   "enabled": true,
-  "versionName": "1.1.12",
-  "versionCode": 14,
-  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.12.apk",
-  "sha256": "11584a887b03acae327471b6dc86569fc450027a2cadeffe504551cd1f34a7dc",
-  "sizeBytes": 35812792,
+  "versionName": "1.1.14",
+  "versionCode": 16,
+  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.14.apk",
+  "sha256": "b3c1efaa8d4021d4169f2674ae5feb3921f0172a7c971551499a0973b7b28639",
+  "sizeBytes": 35816888,
   "minSdk": 23,
   "abi": "arm64-v8a",
-  "notes": "Corrige el toque sobre celdas y abre el teclado para editar. Compatible con zoom con dos dedos y desplazamiento por toda la hoja. Conserva libros, datos, cuenta y totales."
+  "notes": "Más tickets: insertar filas antes de los totales, ajustando fórmulas y referencias y conservando el formato. Autosuma contempla huecos. Incluye selección de encabezados, tamaños y ampliación de hoja."
 }
