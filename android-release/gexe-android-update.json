@@ -3,12 +3,12 @@
   "platform": "android",
   "applicationId": "com.gozt.gexe",
   "enabled": true,
-  "versionName": "1.1.11",
-  "versionCode": 13,
-  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.11.apk",
-  "sha256": "b3a89f26354389007b8f9e947b3618b755e752ea7219088a0bef3923ede574fe",
-  "sizeBytes": 35478046,
+  "versionName": "1.1.12",
+  "versionCode": 14,
+  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.12.apk",
+  "sha256": "11584a887b03acae327471b6dc86569fc450027a2cadeffe504551cd1f34a7dc",
+  "sizeBytes": 35812792,
   "minSdk": 23,
   "abi": "arm64-v8a",
-  "notes": "Hoja completa de 500 filas y 26 columnas, desplazamiento vertical/horizontal, celdas vacías editables y zoom con dos dedos o botones. Corrección de SUBTOTAL 109 para kilos. Conserva la biblioteca y los datos."
+  "notes": "Corrige el toque sobre celdas y abre el teclado para editar. Compatible con zoom con dos dedos y desplazamiento por toda la hoja. Conserva libros, datos, cuenta y totales."
 }
