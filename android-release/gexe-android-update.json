@@ -1,0 +1,14 @@
+{
+  "product": "GEXE",
+  "platform": "android",
+  "applicationId": "com.gozt.gexe",
+  "enabled": true,
+  "versionName": "1.1.7",
+  "versionCode": 9,
+  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.7.apk",
+  "sha256": "1a7e7e0854a503387b364d4ac690b25f35ec128b7d1265b5be72c57c3526f5a3",
+  "sizeBytes": 35449374,
+  "minSdk": 23,
+  "abi": "arm64-v8a",
+  "notes": "Precios actualizados: USD 28,15 mensual y USD 201,09 pago único. Nuevos pagos y validación de claves. Buscar, descargar e instalar actualizaciones desde Inicio. Conserva libros, cuenta y licencia."
+}

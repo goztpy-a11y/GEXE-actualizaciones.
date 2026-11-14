@@ -1,0 +1,31 @@
+name: Publicar Android verificado
+on:
+  push:
+    branches: [android-distribution]
+    paths: ["android-release/**", ".github/workflows/android-assets.yml"]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verificar y publicar el archivo Android
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,hashlib,pathlib
+          p=pathlib.Path('android-release')
+          f=json.loads((p/'gexe-android-update.json').read_text())
+          apk=p/('GEXE-Android-'+f['versionName']+'.apk')
+          data=apk.read_bytes()
+          assert f['applicationId']=='com.gozt.gexe' and f['platform']=='android'
+          assert len(data)==f['sizeBytes'] and hashlib.sha256(data).hexdigest()==f['sha256']
+          PY
+          gh release upload android-updates android-release/*.apk --clobber
+          gh release upload android-updates android-release/gexe-android-update.json --clobber
+          gh release edit android-updates --draft=false --prerelease --latest=false
