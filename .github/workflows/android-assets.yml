@@ -18,14 +18,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import json,hashlib,pathlib
+          import json,hashlib,pathlib,re
           p=pathlib.Path('android-release')
           f=json.loads((p/'gexe-android-update.json').read_text())
+          assert re.fullmatch(r'[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}',f['versionName'])
           apk=p/('GEXE-Android-'+f['versionName']+'.apk')
           data=apk.read_bytes()
           assert f['applicationId']=='com.gozt.gexe' and f['platform']=='android'
           assert len(data)==f['sizeBytes'] and hashlib.sha256(data).hexdigest()==f['sha256']
           PY
-          gh release upload android-updates android-release/*.apk --clobber
+          VERSION=$(python3 -c 'import json; print(json.load(open("android-release/gexe-android-update.json"))["versionName"])')
+          gh release upload android-updates "android-release/GEXE-Android-$VERSION.apk"
           gh release upload android-updates android-release/gexe-android-update.json --clobber
           gh release edit android-updates --draft=false --prerelease --latest=false
