@@ -3,12 +3,12 @@
   "platform": "android",
   "applicationId": "com.gozt.gexe",
   "enabled": true,
-  "versionName": "1.1.9",
-  "versionCode": 11,
-  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.9.apk",
-  "sha256": "c80c66cd71b1e8ed3f17f8865eaac7479290cc153e9ac2f0ca92e49c7a168f49",
-  "sizeBytes": 35804600,
+  "versionName": "1.1.10",
+  "versionCode": 12,
+  "downloadUrl": "https://github.com/goztpy-a11y/GEXE-actualizaciones./releases/download/android-updates/GEXE-Android-1.1.10.apk",
+  "sha256": "6b1b0d8d912794d6ef2c69208b51c48bbfc289cbe5d7cdb6588dd242f67fde93",
+  "sizeBytes": 35812792,
   "minSdk": 23,
   "abi": "arm64-v8a",
-  "notes": "Nuevo Inicio con libros sincronizados y menú ☰ con cuenta Google verificada, planes y actualizaciones. Sincronización automática de biblioteca. Mantener presionado: compartir copia o mover a papelera en todos los dispositivos. Papelera recuperable."
+  "notes": "Corrige apertura con un toque y evita duplicar libros al importar. Conserva última hoja y posición. Comparte copias y permite papelera recuperable sincronizada."
 }
